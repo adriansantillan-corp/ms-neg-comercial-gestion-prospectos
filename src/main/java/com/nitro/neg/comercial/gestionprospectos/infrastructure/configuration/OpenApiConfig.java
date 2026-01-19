@@ -1,0 +1,23 @@
+package com.nitro.neg.comercial.gestionprospectos.infrastructure.configuration;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OpenApiConfig {
+
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Microservicio de Gestión de Prospectos")
+                        .version("1.0.0")
+                        .description("API Reactiva para la gestión del ciclo de vida de prospectos y su integración con Salesforce.")
+                        .contact(new Contact()
+                                .name("Equipo de Desarollo AINI")
+                                .email("adrian.santillan@ajegroup.com")));
+    }
+}

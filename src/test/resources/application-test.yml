@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: ms-neg-comercial-gestion-prospectos-test
+
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    pool:
+      enabled: false
+
+  sql:
+    init:
+      mode: never
+
+  flyway:
+    enabled: false
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+
+salesforce:
+  api:
+    url: http://localhost:9999/mock-salesforce
+    token: test-token-123
+
+app:
+  security:
+    enabled: false
+
+  aws:
+    region: us-east-1
+    s3:
+      bucket-name: test-bucket-prospectos
+
+logging:
+  level:
+    root: INFO
+    com.nitro: DEBUG

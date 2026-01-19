@@ -1,0 +1,144 @@
+# =================================================================
+# application-docker.yml
+# Configuración específica para entorno Docker Compose
+# Activar con: SPRING_PROFILES_ACTIVE=docker
+# =================================================================
+
+spring:
+  application:
+    name: ms-neg-comercial-gestion-prospectos
+  
+  # ===== R2DBC (PostgreSQL Reactivo) =====
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:db_prospectos}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    pool:
+      enabled: true
+      initial-size: ${R2DBC_POOL_INITIAL_SIZE:10}
+      max-size: ${R2DBC_POOL_MAX_SIZE:20}
+      max-idle-time: ${R2DBC_POOL_MAX_IDLE_TIME:30m}
+      max-acquire-time: 3s
+      max-create-connection-time: 5s
+      validation-query: SELECT 1
+  
+  # ===== FLYWAY (Migraciones de BD) =====
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:db_prospectos}
+    user: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  
+  # ===== WEBFLUX (Servidor Reactivo) =====
+  webflux:
+    base-path: /api/v1
+
+server:
+  port: ${APP_PORT:8080}
+  netty:
+    connection-timeout: 30s
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# ===== ACTUATOR (Monitoreo) =====
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE:health,info,metrics,prometheus}
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: ${MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS:always}
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# ===== LOGGING =====
+logging:
+  level:
+    root: ${LOGGING_LEVEL_ROOT:INFO}
+    com.nitro: ${LOGGING_LEVEL_COM_NITRO:DEBUG}
+    org.springframework.r2dbc: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_R2DBC:DEBUG}
+    io.r2dbc.postgresql: ${LOGGING_LEVEL_IO_R2DBC_POSTGRESQL:DEBUG}
+    org.springframework.web: INFO
+    reactor.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# =================================================================
+# CONFIGURACIÓN AWS (LocalStack)
+# =================================================================
+cloud:
+  aws:
+    region:
+      static: ${AWS_REGION:us-east-1}
+      auto: false
+    stack:
+      auto: false
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID:test}
+      secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+      use-default-aws-credentials-chain: false
+
+# S3 Configuration
+aws:
+  s3:
+    endpoint: ${S3_ENDPOINT_OVERRIDE:http://localstack:4566}
+    bucket-name: ${S3_BUCKET_NAME:nitro-prospectos-assets-dev}
+    region: ${AWS_REGION:us-east-1}
+    path-style-access-enabled: true  # Requerido para LocalStack
+
+# CloudWatch (Desactivado en Docker)
+cloudwatch:
+  metrics:
+    enabled: ${CLOUDWATCH_METRICS_ENABLED:false}
+
+# =================================================================
+# CONFIGURACIÓN SALESFORCE (Desactivado en local)
+# =================================================================
+salesforce:
+  api:
+    url: ${SALESFORCE_API_URL:https://test.salesforce.com}
+    token: ${SALESFORCE_API_TOKEN:dummy}
+  integration:
+    enabled: ${SALESFORCE_INTEGRATION_ENABLED:false}
+    base-url: https://test.salesforce.com
+    client-id: ${SALESFORCE_CLIENT_ID:dummy}
+    client-secret: ${SALESFORCE_CLIENT_SECRET:dummy}
+    username: ${SALESFORCE_USERNAME:dummy}
+    password: ${SALESFORCE_PASSWORD:dummy}
+    security-token: ${SALESFORCE_SECURITY_TOKEN:dummy}
+
+# =================================================================
+# CONFIGURACIÓN DE DOMINIO
+# =================================================================
+app:
+  domain:
+    prospecto:
+      max-fotos: 5
+      max-file-size: 5MB
+      allowed-extensions:
+        - jpg
+        - jpeg
+        - png
+        - pdf
+  
+  # Timeouts
+  timeouts:
+    database: 5s
+    storage: 30s
+    external-api: 10s

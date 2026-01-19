@@ -1,0 +1,38 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:db_prospectos}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+  flyway:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:db_prospectos}
+    user: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+app:
+  security:
+    enabled: false
+
+  aws:
+    s3:
+      bucket-name: nitro-prospectos-assets-dev # O local si usas localstack
+
+management:
+  metrics:
+    export:
+      cloudwatch:
+        enabled: false
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    reactor.netty.http.server: DEBUG
+    com.nitro: DEBUG
