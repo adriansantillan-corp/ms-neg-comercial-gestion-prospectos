@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DomainException.class)
     public Mono<ResponseEntity<Map<String, Object>>> handleDomainException(DomainException ex) {
-        log.warn("Error de Negocio: {}", ex.getMessage()); // Loguear warning
+        log.error("❌ ERROR DE NEGOCIO DETALLADO: ", ex);
         return Mono.just(ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(Map.of(

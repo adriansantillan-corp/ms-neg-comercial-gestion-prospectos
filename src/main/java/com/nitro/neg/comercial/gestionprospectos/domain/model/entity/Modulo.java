@@ -14,4 +14,6 @@ public record Modulo(
             throw new DomainException("El UUID del módulo es obligatorio.");
         }
     }
+
+    public String getId() { return id; }
 }

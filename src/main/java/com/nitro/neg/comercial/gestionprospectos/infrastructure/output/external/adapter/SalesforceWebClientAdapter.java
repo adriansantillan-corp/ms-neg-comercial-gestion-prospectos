@@ -8,6 +8,7 @@ import com.nitro.neg.comercial.gestionprospectos.domain.port.output.SalesforceIn
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty; // <--- 1. IMPORTAR ESTO
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,6 +20,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "salesforce.integration.enabled", havingValue = "true")
 public class SalesforceWebClientAdapter implements SalesforceIntegrationPort {
 
     private final WebClient webClient;
@@ -33,7 +35,7 @@ public class SalesforceWebClientAdapter implements SalesforceIntegrationPort {
     public Mono<String> enviarProspecto(Prospecto prospecto) {
         Map<String, Object> payload = mapToSalesforcePayload(prospecto);
 
-        log.info("Enviando prospecto a Salesforce. UUID: {}", prospecto.getUuid());
+        log.info("🚀 [REAL] Enviando prospecto a Salesforce. UUID: {}", prospecto.getUuid());
 
         return webClient.post()
                 .uri(sfApiUrl + "/services/apexrest/ProspectoApp/")
@@ -54,6 +56,7 @@ public class SalesforceWebClientAdapter implements SalesforceIntegrationPort {
                     return Mono.error(new DomainException("Error al sincronizar con Salesforce", e));
                 });
     }
+
 
     private Map<String, Object> mapToSalesforcePayload(Prospecto p) {
         Map<String, Object> map = new HashMap<>();

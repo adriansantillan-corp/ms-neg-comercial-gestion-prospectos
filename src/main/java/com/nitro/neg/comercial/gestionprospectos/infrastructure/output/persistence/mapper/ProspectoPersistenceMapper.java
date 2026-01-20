@@ -19,16 +19,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 public class ProspectoPersistenceMapper {
 
-
     public ProspectoEntity toEntity(Prospecto d) {
         if (d == null) return null;
 
+        boolean esNuevo = d.getSalesforceId() == null;
+
         ProspectoEntity.ProspectoEntityBuilder builder = ProspectoEntity.builder();
+        builder.isNew(esNuevo);
 
         builder.id(d.getId().value());
         builder.uuid(d.getUuid());
@@ -66,8 +69,48 @@ public class ProspectoPersistenceMapper {
         builder.pais(d.getPaisIso());
         builder.creadoEnNitroApp(d.isCreadoEnNitroApp());
         builder.usarDireccionFacturacion(d.isUsarDireccionFacturacion());
+        builder.canalComercial(d.getCanalComercial());
 
         return builder.build();
+    }
+
+    public ModuloEntity toModuloEntity(Modulo m, String prospectoId, boolean esNuevo) {
+        if (m == null) return null;
+        return ModuloEntity.builder()
+                .isNew(esNuevo)
+                .id(m.getId() != null ? m.getId() : UUID.randomUUID().toString())
+                .uuid(m.uuid())
+                .prospectoId(prospectoId)
+                .diasVisita(m.diasVisita())
+                .periodoVisita(m.periodoVisita())
+                .idModuloAsignado(m.idModuloAsignado())
+                .build();
+    }
+
+    public SolicitudEntity toSolicitudEntity(Solicitud s, String prospectoId, boolean esNuevo) {
+        if (s == null) return null;
+        return SolicitudEntity.builder()
+                .isNew(esNuevo)
+                .id(s.getId() != null ? s.getId() : UUID.randomUUID().toString())
+                .uuid(s.uuid())
+                .prospectoId(prospectoId)
+                .estado(s.estado())
+                .tipo(s.tipo())
+                .recordTypeId(s.recordTypeId())
+                .enviarParaAprobacion(s.enviarParaAprobacion())
+                .build();
+    }
+
+    public FotoEntity toFotoEntity(Foto f, String prospectoId, boolean esNuevo) {
+        if (f == null) return null;
+        return FotoEntity.builder()
+                .isNew(esNuevo)
+                .id(f.id() != null ? f.id() : UUID.randomUUID().toString())
+                .prospectoId(prospectoId)
+                .url(f.url())
+                .path(f.path())
+                .nombreArchivo(f.nombreArchivo())
+                .build();
     }
 
 
@@ -84,30 +127,21 @@ public class ProspectoPersistenceMapper {
                 .id(new ProspectoId(e.getId()))
                 .uuid(e.getUuid())
                 .salesforceId(e.getSalesforceId())
-
                 .nombreRazonSocial(e.getNombreRazonSocial())
                 .nombreContacto(e.getNombreContacto())
                 .apellidoPaterno(e.getApellidoPaterno())
                 .apellidoMaterno(e.getApellidoMaterno())
                 .idFiscal(e.getIdFiscal())
-
                 .documentoIdentidad(new DocumentoIdentidad(tipoDoc, e.getNumeroDocumento()))
-
                 .contacto(new Contacto(
-                        e.getTelefono(),
-                        e.getTelefonoContacto(),
-                        e.getCorreoElectronico(),
-                        e.getCorreoPersonaContacto()
-                ))
-
+                        e.getTelefono(), e.getTelefonoContacto(),
+                        e.getCorreoElectronico(), e.getCorreoPersonaContacto()))
                 .direccionFacturacion(reconstructBilling(e))
                 .direccionEnvio(reconstructShipping(e))
-
                 .giro(e.getGiro())
                 .subgiro(e.getSubgiro())
                 .descripcion(e.getDescripcion())
                 .fechaNacimiento(e.getFechaNacimiento())
-
                 .latitud(e.getLatitud())
                 .longitud(e.getLongitud())
                 .listaPrecios(e.getListaDePrecios())
@@ -115,90 +149,50 @@ public class ProspectoPersistenceMapper {
                 .paisIso(e.getPais())
                 .creadoEnNitroApp(Boolean.TRUE.equals(e.getCreadoEnNitroApp()))
                 .usarDireccionFacturacion(Boolean.TRUE.equals(e.getUsarDireccionFacturacion()))
+                .canalComercial(e.getCanalComercial())
 
                 .modulo(toDomainModulo(moduloEntity))
                 .solicitud(toDomainSolicitud(solicitudEntity))
                 .fotos(toDomainFotos(fotoEntities))
-
                 .build();
     }
 
-
     private Modulo toDomainModulo(ModuloEntity e) {
         if (e == null) return null;
-        return new Modulo(
-                e.getId(),
-                e.getUuid(),
-                e.getDiasVisita(),
-                e.getIdModuloAsignado(),
-                e.getPeriodoVisita()
-        );
+        return new Modulo(e.getId(), e.getUuid(), e.getDiasVisita(), e.getIdModuloAsignado(), e.getPeriodoVisita());
     }
 
     private Solicitud toDomainSolicitud(SolicitudEntity e) {
         if (e == null) return null;
-
         String estado = e.getEstado() != null ? EstadoSolicitud.fromString(e.getEstado()).name() : "PENDIENTE";
         String tipo = e.getTipo() != null ? TipoSolicitud.fromString(e.getTipo()).name() : "ALTA";
-
-        return new Solicitud(
-                e.getId(),
-                e.getUuid(),
-                estado,
-                tipo,
-                e.getRecordTypeId(),
-                Boolean.TRUE.equals(e.getEnviarParaAprobacion()),
-                true
-        );
+        return new Solicitud(e.getId(), e.getUuid(), estado, tipo, e.getRecordTypeId(), Boolean.TRUE.equals(e.getEnviarParaAprobacion()), true);
     }
 
     private List<Foto> toDomainFotos(List<FotoEntity> entities) {
         if (entities == null || entities.isEmpty()) return Collections.emptyList();
         return entities.stream()
-                .map(e -> new Foto(
-                        e.getId(),
-                        e.getUrl(),
-                        e.getPath(),
-                        e.getNombreArchivo()
-                ))
+                .map(e -> new Foto(e.getId(), e.getUrl(), e.getPath(), e.getNombreArchivo()))
                 .collect(Collectors.toList());
     }
 
     private void mapBillingAddress(ProspectoEntity.ProspectoEntityBuilder b, Direccion d) {
         if (d == null) return;
-        b.billingStreet(d.calle());
-        b.billingNumero(d.numero());
-        b.billingInterior(d.interior());
-        b.billingLote(d.lote());
-        b.billingManzana(d.manzana());
-        b.billingCity(d.ciudad());
-        b.billingState(d.estado());
-        b.billingCountry(d.pais());
-        b.billingPostalCode(d.codigoPostal());
-        b.billingClasificacion(d.clasificacion());
-        b.billingDetalleClasificacion(d.detalleClasificacion());
-        b.billingTipoVia(d.tipoVia());
-        b.billingDetalleVia(d.detalleVia());
-        b.billingReferencia(d.referencia());
+        b.billingStreet(d.calle()); b.billingNumero(d.numero()); b.billingInterior(d.interior());
+        b.billingLote(d.lote()); b.billingManzana(d.manzana()); b.billingCity(d.ciudad());
+        b.billingState(d.estado()); b.billingCountry(d.pais()); b.billingPostalCode(d.codigoPostal());
+        b.billingClasificacion(d.clasificacion()); b.billingDetalleClasificacion(d.detalleClasificacion());
+        b.billingTipoVia(d.tipoVia()); b.billingDetalleVia(d.detalleVia()); b.billingReferencia(d.referencia());
         b.billingAddressFull(d.calle() + " " + (d.numero() != null ? d.numero() : ""));
     }
 
     private void mapShippingAddress(ProspectoEntity.ProspectoEntityBuilder b, Direccion d) {
         if (d == null) return;
-        b.shippingStreet(d.calle());
-        b.shippingNumero(d.numero());
-        b.shippingInterior(d.interior());
-        b.shippingLote(d.lote());
-        b.shippingManzana(d.manzana());
-        b.shippingCity(d.ciudad());
-        b.shippingState(d.estado());
-        b.shippingCountry(d.pais());
-        b.shippingPostalCode(d.codigoPostal());
-        b.shippingClasificacion(d.clasificacion());
-        b.shippingDetalleClasificacion(d.detalleClasificacion());
-        b.shippingTipoVia(d.tipoVia());
-        b.shippingDetalleVia(d.detalleVia());
-        b.shippingReferencia(d.referencia());
+        b.shippingStreet(d.calle()); b.shippingNumero(d.numero()); b.shippingInterior(d.interior());
+        b.shippingLote(d.lote()); b.shippingManzana(d.manzana()); b.shippingCity(d.ciudad());
+        b.shippingState(d.estado()); b.shippingCountry(d.pais()); b.shippingPostalCode(d.codigoPostal());
+        b.shippingClasificacion(d.clasificacion()); b.shippingDetalleClasificacion(d.detalleClasificacion());
+        b.shippingTipoVia(d.tipoVia()); b.shippingDetalleVia(d.detalleVia()); b.shippingReferencia(d.referencia());
         b.shippingAddressFull(d.calle() + " " + (d.numero() != null ? d.numero() : ""));
     }
 

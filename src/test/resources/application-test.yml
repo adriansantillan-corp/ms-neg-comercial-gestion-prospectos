@@ -2,12 +2,17 @@ spring:
   application:
     name: ms-neg-comercial-gestion-prospectos-test
 
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
+      - io.awspring.cloud.autoconfigure.core.AwsAutoConfiguration
+      - io.awspring.cloud.autoconfigure.config.secretsmanager.SecretsManagerAutoConfiguration
+
   r2dbc:
-    url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
     pool:
-      enabled: false
+      enabled: true
+      initial-size: 5
+      max-size: 10
 
   sql:
     init:
@@ -21,22 +26,55 @@ spring:
       write-dates-as-timestamps: false
     time-zone: UTC
 
+  webflux:
+    base-path: /api/v1
 
-salesforce:
-  api:
-    url: http://localhost:9999/mock-salesforce
-    token: test-token-123
+server:
+  port: 0
 
 app:
   security:
     enabled: false
+    oauth2:
+      jwk-set-uri: mock://test-jwk-uri
 
+cloud:
   aws:
+    region:
+      static: us-east-1
+      auto: false
+    stack:
+      auto: false
+    credentials:
+      access-key: test
+      secret-key: test
+
+aws:
+  s3:
+    bucket-name: test-bucket-prospectos
     region: us-east-1
-    s3:
-      bucket-name: test-bucket-prospectos
+    endpoint: http://localhost:4566
+
+salesforce:
+  integration:
+    enabled: false
+  api:
+    url: http://localhost:9999/mock-salesforce
+    token: test-token-123
 
 logging:
   level:
-    root: INFO
+    root: WARN
     com.nitro: DEBUG
+    org.springframework: WARN
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

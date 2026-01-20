@@ -3,11 +3,14 @@
 -- ============================================================================
 -- Aseguramos que la tabla exista (si corres en H2 o DB vacía)
 CREATE TABLE IF NOT EXISTS public.prospecto (
-                                                id varchar(36) NOT NULL PRIMARY KEY, -- Ampliado a 36 para UUID
+                                                id varchar(36) NOT NULL PRIMARY KEY,
     uuid__c varchar(255),
-    salesforce_id__c varchar(18),        -- Nuevo campo para guardar el ID de retorno de SF
+    salesforce_id__c varchar(18),
+    owner_id varchar(18),
+    is_deleted bool,      -- Y este
+    system_modstamp timestamp, -- Y este
+    created_by_id varchar(18), -- Y este
 
--- Campos principales (Legacy)
     name varchar(80),
     nombre_razon_social__c varchar(80),
     nombre_contacto__c varchar(80),
@@ -16,10 +19,15 @@ CREATE TABLE IF NOT EXISTS public.prospecto (
     documento_identificacion__c varchar(255),
     numero_documento__c varchar(25),
     id_fiscal__c varchar(40),
-    correo_electronico__c varchar(80),
-    telefono__c varchar(40),
 
-    -- Direcciones Billing
+    correo_electronico__c varchar(80),
+    correo_persona_contacto__c varchar(80),
+
+    telefono__c varchar(40),
+    telefono_contacto__c varchar(40),
+    telefono_alternativo_1__c varchar(40),
+
+-- ... (resto de las columnas de direcciones igual) ...
     billing_address__c varchar(1300),
     billing_street__c varchar(255),
     billing_numero__c varchar(40),
@@ -36,7 +44,6 @@ CREATE TABLE IF NOT EXISTS public.prospecto (
     billing_clasificacion__c varchar(255),
     billing_detalle_clasificacion__c varchar(80),
 
-    -- Direcciones Shipping
     shipping_address__c varchar(1300),
     shipping_street__c varchar(255),
     shipping_numero__c varchar(10),
@@ -53,7 +60,6 @@ CREATE TABLE IF NOT EXISTS public.prospecto (
     shipping_clasificacion__c varchar(255),
     shipping_detalle_clasificacion__c varchar(80),
 
-    -- Metadata
     giro__c varchar(1300),
     subgiro__c varchar(18),
     descripcion__c text,
@@ -61,9 +67,11 @@ CREATE TABLE IF NOT EXISTS public.prospecto (
     latitud__c varchar(255),
     longitud__c varchar(255),
     lista_de_precios__c varchar(18),
+    record_type_id varchar(18),
     pais__c varchar(1300),
     creado_en_nitro_app__c bool,
     usar_direccion_facturacion__c bool,
+    canal_comercial__c varchar(255),
 
     created_date timestamp,
     last_modified_date timestamp

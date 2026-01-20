@@ -16,4 +16,5 @@ public record Solicitud(
             throw new DomainException("El UUID de la solicitud es obligatorio.");
         }
     }
+    public String getId() { return id; }
 }

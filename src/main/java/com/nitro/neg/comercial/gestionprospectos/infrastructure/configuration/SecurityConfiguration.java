@@ -1,5 +1,7 @@
 package com.nitro.neg.comercial.gestionprospectos.infrastructure.configuration;
 
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
@@ -51,16 +54,30 @@ public class SecurityConfiguration {
         this.environment = environment;
     }
 
+    @PostConstruct
+    public void logSecurityStatus() {
+        log.info("╔════════════════════════════════════════════════════════╗");
+        log.info("║  SEGURIDAD: {}                                    ║",
+                securityEnabled ? "ACTIVADA ✅" : "DESACTIVADA ⚠️");
+        log.info("║  Profile activo: {}                              ║",
+                String.join(", ", environment.getActiveProfiles()));
+        log.info("╚════════════════════════════════════════════════════════╝");
+    }
+
     @Bean
     @Profile("!test")
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        // Si la seguridad está desactivada, permitir TODO
         if (!securityEnabled) {
+            log.warn("⚠️  SEGURIDAD DESACTIVADA - Permitiendo acceso a todos los endpoints");
             return http
                     .csrf(ServerHttpSecurity.CsrfSpec::disable)
                     .authorizeExchange(exchanges -> exchanges.anyExchange().permitAll())
                     .build();
         }
 
+        // Seguridad activada (producción)
+        log.info("✅ SEGURIDAD ACTIVADA - Aplicando reglas de autorización");
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(corsSpec -> corsSpec.configurationSource(request -> {
@@ -78,6 +95,7 @@ public class SecurityConfiguration {
                         .pathMatchers("/api/v1/api-docs/**", "/api/v1/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .pathMatchers("/webjars/**").permitAll()
 
+                        // Prospectos con roles
                         .pathMatchers(HttpMethod.POST, PROSPECTOS_PATH).hasAnyRole(ROLE_VENDEDOR, ROLE_ADMIN, ROLE_SUPERVISOR)
                         .pathMatchers(HttpMethod.GET, PROSPECTOS_PATH).hasAnyRole(ROLE_VENDEDOR, ROLE_ADMIN, ROLE_SUPERVISOR, ROLE_JEFE_VENTAS)
                         .pathMatchers(HttpMethod.PUT, PROSPECTOS_PATH).hasAnyRole(ROLE_VENDEDOR, ROLE_ADMIN)
@@ -151,9 +169,6 @@ public class SecurityConfiguration {
         return Collections.emptyList();
     }
 
-    /**
-     * Utilidad para obtener el ID del usuario actual desde el contexto reactivo.
-     */
     public static Mono<String> getCurrentUserId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return Mono.empty();

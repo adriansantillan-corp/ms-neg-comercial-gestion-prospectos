@@ -36,6 +36,8 @@ public class Prospecto {
     private final Direccion direccionFacturacion;
     private final boolean usarDireccionFacturacion;
 
+    private String canalComercial;
+
     private final Contacto contacto;
 
     private final Modulo modulo;
@@ -117,6 +119,7 @@ public class Prospecto {
     public String getRecordTypeId() { return recordTypeId; }
     public String getPaisIso() { return paisIso; }
     public boolean isCreadoEnNitroApp() { return creadoEnNitroApp; }
+    public String getCanalComercial() { return canalComercial; }
 
     public List<Foto> getFotos() {
         return Collections.unmodifiableList(fotos);
@@ -149,6 +152,8 @@ public class Prospecto {
         private String recordTypeId;
         private String paisIso;
         private boolean creadoEnNitroApp;
+        private String canalComercial;
+        public Builder canalComercial(String val) { this.canalComercial = val; return this; }
 
         public Builder() {
             this.id = ProspectoId.random();

@@ -5,9 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.Persistable;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,74 +17,41 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("public.prospecto")
-public class ProspectoEntity {
+public class ProspectoEntity implements Persistable<String> {
 
     @Id
     @Column("id")
     private String id;
 
-    @Column("uuid__c")
-    private String uuid;
+    @Transient
+    @Builder.Default
+    private boolean isNew = false;
 
-    @Column("salesforce_id__c")
-    private String salesforceId;
+    @Override
+    public boolean isNew() { return this.isNew; }
 
-    @Column("owner_id")
-    private String ownerId;
+    @Column("uuid__c") private String uuid;
+    @Column("salesforce_id__c") private String salesforceId;
+    @Column("owner_id") private String ownerId;
+    @Column("is_deleted") private Boolean isDeleted;
+    @Column("name") private String name;
+    @Column("created_date") private LocalDateTime createdDate;
+    @Column("created_by_id") private String createdById;
+    @Column("last_modified_date") private LocalDateTime lastModifiedDate;
+    @Column("system_modstamp") private LocalDateTime systemModstamp;
 
-    @Column("is_deleted")
-    private Boolean isDeleted;
-
-    @Column("name")
-    private String name;
-
-    @Column("created_date")
-    private LocalDateTime createdDate;
-
-    @Column("created_by_id")
-    private String createdById;
-
-    @Column("last_modified_date")
-    private LocalDateTime lastModifiedDate;
-
-    @Column("system_modstamp")
-    private LocalDateTime systemModstamp;
-
-    @Column("nombre_razon_social__c")
-    private String nombreRazonSocial;
-
-    @Column("nombre_contacto__c")
-    private String nombreContacto;
-
-    @Column("apellido_paterno__c")
-    private String apellidoPaterno;
-
-    @Column("apellido_materno__c")
-    private String apellidoMaterno;
-
-    @Column("documento_identificacion__c")
-    private String documentoIdentificacion;
-
-    @Column("numero_documento__c")
-    private String numeroDocumento;
-
-    @Column("id_fiscal__c")
-    private String idFiscal;
-
-    @Column("correo_electronico__c")
-    private String correoElectronico;
-
-    @Column("correo_persona_contacto__c")
-    private String correoPersonaContacto;
-
-    @Column("telefono__c")
-    private String telefono;
-
-    @Column("telefono_contacto__c")
-    private String telefonoContacto;
-
-    @Column("telefono_alternativo_1__c")
-    private String telefonoAlternativo1;
+    @Column("nombre_razon_social__c") private String nombreRazonSocial;
+    @Column("nombre_contacto__c") private String nombreContacto;
+    @Column("apellido_paterno__c") private String apellidoPaterno;
+    @Column("apellido_materno__c") private String apellidoMaterno;
+    @Column("documento_identificacion__c") private String documentoIdentificacion;
+    @Column("numero_documento__c") private String numeroDocumento;
+    @Column("id_fiscal__c") private String idFiscal;
+    @Column("correo_electronico__c") private String correoElectronico;
+    @Column("correo_persona_contacto__c") private String correoPersonaContacto;
+    @Column("telefono__c") private String telefono;
+    @Column("telefono_contacto__c") private String telefonoContacto;
+    @Column("telefono_alternativo_1__c") private String telefonoAlternativo1;
 
     @Column("billing_address__c") private String billingAddressFull;
     @Column("billing_street__c") private String billingStreet;
@@ -128,7 +96,6 @@ public class ProspectoEntity {
     @Column("pais__c") private String pais;
     @Column("creado_en_nitro_app__c") private Boolean creadoEnNitroApp;
     @Column("usar_direccion_facturacion__c") private Boolean usarDireccionFacturacion;
+    @Column("canal_comercial__c") private String canalComercial;
 
-    @Column("canal_comercial__c")
-    private String canalComercial;
 }
